@@ -6,7 +6,14 @@
 
 from flask import Flask, request, jsonify, send_file, send_from_directory
 from flask_cors import CORS
-import json, re, os, time, requests as req
+import json, re, os, time, datetime, requests as req
+import cloudinary, cloudinary.uploader
+
+cloudinary.config(
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key    = os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET', '')
+)
 
 app = Flask(__name__)
 CORS(app)
@@ -89,9 +96,19 @@ def upload_photo():
     ext = os.path.splitext(file.filename)[1].lower()
     if ext not in ['.jpg', '.jpeg', '.png', '.webp', '.gif', '.heic']:
         return jsonify({'error': '이미지 파일만 업로드 가능해요'}), 400
-    filename = f'{int(time.time() * 1000)}{ext}'
-    file.save(os.path.join(UPLOAD_FOLDER, filename))
-    return jsonify({'url': f'/uploads/{filename}'})
+    try:
+        result = cloudinary.uploader.upload(file)
+        return jsonify({'url': result['secure_url']})
+    except Exception as e:
+        return jsonify({'error': f'업로드 실패: {str(e)}'}), 500
+
+@app.route('/api/last-updated', methods=['GET'])
+def last_updated():
+    if os.path.exists(DB_FILE):
+        mtime = os.path.getmtime(DB_FILE)
+        dt = datetime.datetime.utcfromtimestamp(mtime) + datetime.timedelta(hours=9)
+        return jsonify({'date': f'{dt.year}.{dt.month}.{dt.day}'})
+    return jsonify({'date': None})
 
 @app.route('/api/accounts', methods=['GET'])
 def get_accounts():
