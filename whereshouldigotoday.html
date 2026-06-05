@@ -265,7 +265,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   position: relative;
 }
 .cafe-card:hover { background: rgba(0,0,0,.02); }
-.cafe-card.active { background: rgba(0,0,0,.03); }
+.cafe-card.active { background: #EDE0D4; border-left: 4px solid #8B4A2A; }
+.cafe-card.active .card-name { color: #8B4A2A; font-style: italic; }
 
 .card-thumb {
   width: 116px;
@@ -354,6 +355,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 #map { position: absolute; inset: 0; }
 
 /* pin */
+.pin-icon {
+  background: transparent !important;
+  border: none !important;
+  display: flex; align-items: center; justify-content: center;
+}
 .pin-dot {
   width: 8px; height: 8px;
   background: var(--text); border-radius: 50%;
@@ -362,7 +368,20 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   cursor: pointer;
   transition: transform .2s, background .2s;
 }
-.pin-dot.lit { transform: scale(2.8); background: #8B4A2A; border-color: var(--bg); box-shadow: 0 0 0 1px #8B4A2A, 0 2px 6px rgba(139,74,42,.4); }
+.pin-dot.lit {
+  background: transparent;
+  border: none;
+  box-shadow: none;
+  transform: none;
+  width: 24px; height: 24px;
+}
+.pin-dot.lit::before {
+  content: '☕';
+  font-size: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
 
 /* ─────────────────────────────────────────
    SCREEN 4 — FULL LIST
@@ -398,7 +417,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .list-title:hover { opacity: .5; }
 
 .list-content { display: flex; flex: 1; overflow: hidden; }
-.list-body { flex: 1; min-width: 0; overflow-y: auto; padding: 0 0 80px; }
+.list-body { flex: 0 0 35%; min-width: 0; overflow-y: auto; padding: 0 0 80px; }
 .list-body::-webkit-scrollbar { width: 3px; }
 .list-body::-webkit-scrollbar-thumb { background: var(--border); }
 .list-map-pane { flex: 1; min-width: 200px; position: relative; }
@@ -438,7 +457,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   transition: background .15s;
 }
 .list-item:hover { background: rgba(0,0,0,.02); }
-.list-item.active { background: rgba(0,0,0,.03); }
+.list-item.active { background: #EDE0D4; border-left: 4px solid #8B4A2A; }
+.list-item.active .list-item-name { color: #8B4A2A; font-style: italic; }
 
 /* list item expand */
 .list-item-expand {
@@ -852,7 +872,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   .screen.active { display: flex; }
 
   /* Landing */
-  #s-land { flex-direction: column; align-items: center; padding: 32px 20px 60px; overflow-y: auto; }
+  #s-land { flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px 80px; overflow-y: auto; min-height: 100svh; }
   .land-hero { width: 100%; align-items: center; overflow: hidden; }
   .sticker-area {
     width: 480px !important; max-width: none !important;
@@ -892,8 +912,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   /* Full list screen */
   #s-list { flex-direction: column; }
   .list-content { flex-direction: column !important; }
-  .list-body { flex: none !important; width: 100% !important; max-height: 55vh; }
-  .list-map-pane { flex: none !important; width: 100% !important; height: 260px; }
+  .list-body { flex: none !important; width: 100% !important; height: 50vh; max-height: 50vh; }
+  .list-map-pane { flex: none !important; width: 100% !important; height: 50vh; }
   .list-bar-top { flex-wrap: wrap; gap: 6px; }
 
   /* Cards */
@@ -1352,8 +1372,10 @@ function showResultsScreen() {
     el.className = 'pin-dot';
     el.dataset.id = cafe.id;
     const m = L.marker([cafe.lat, cafe.lng], {
-      icon: L.divIcon({ html: el, className:'', iconSize:[8,8], iconAnchor:[4,4] })
+      icon: L.divIcon({ html: el, className:'pin-icon', iconSize:[28,28], iconAnchor:[14,14] })
     }).addTo(mapObj);
+    m._dot = el;
+    m._id = cafe.id;
     m.on('click', e => {
       e.originalEvent.stopPropagation();
       activateCard(cafe.id, true);
@@ -1439,16 +1461,15 @@ function activateCard(id, fromMap) {
   document.getElementById('expand-'+id)?.classList.add('open');
   updatePins();
 
-  // 카드 스크롤
-  if (!fromMap) {
-    document.getElementById('card-'+id)?.scrollIntoView({ behavior:'smooth', block:'nearest' });
-  }
+  // 카드 스크롤 (핀 클릭 시도 포함)
+  setTimeout(() => {
+    document.getElementById('card-'+id)?.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 100);
 
-  // 지도 이동
+  // 지도 이동 + 줌인
   const cafe = results.find(c => c.id === id) || cafes.find(c => c.id === id);
   if (cafe?.lat && mapObj) {
-    const targetZoom = Math.min(Math.max(mapObj.getZoom(), 14), 15);
-    mapObj.flyTo([cafe.lat, cafe.lng], targetZoom, { duration: .6 });
+    mapObj.flyTo([cafe.lat, cafe.lng], 15, { duration: .6 });
   }
 }
 
@@ -1461,8 +1482,8 @@ function deactivateCard() {
 }
 
 function updatePins() {
-  document.querySelectorAll('.pin-dot').forEach(d => {
-    d.classList.toggle('lit', d.dataset.id == activeCardId);
+  markers.forEach(m => {
+    if (m._dot) m._dot.classList.toggle('lit', m._id == activeCardId);
   });
 }
 
@@ -1542,18 +1563,14 @@ function openList() {
       if (!cafe.lat || !cafe.lng) return;
       const el = document.createElement('div');
       el.className = 'pin-dot';
+      el.dataset.id = cafe.id;
       el.title = cafe.name;
       const m = L.marker([cafe.lat, cafe.lng], {
-        icon: L.divIcon({ html: el, className:'', iconSize:[8,8], iconAnchor:[4,4] })
+        icon: L.divIcon({ html: el, className:'pin-icon', iconSize:[28,28], iconAnchor:[14,14] })
       }).addTo(listMapObj);
-      m.on('click', () => {
-        // 해당 아이템으로 스크롤
-        const item = document.querySelector(`[data-id="${cafe.id}"]`);
-        if (item) item.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // 핀 강조
-        listMarkers.forEach(mk => mk.getElement()?.classList.remove('lit'));
-        el.classList.add('lit');
-      });
+      m._dot = el;
+      m._id = cafe.id;
+      m.on('click', () => toggleListItem(cafe.id));
       listMarkers.push(m);
       bounds.push([cafe.lat, cafe.lng]);
     });
@@ -1566,6 +1583,7 @@ function openList() {
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
+  window.scrollTo(0, 0);
   if (id === 's-results' && mapObj) setTimeout(() => mapObj.invalidateSize(), 120);
   // close side panels when leaving home
   if (id !== 's-land') {
@@ -1891,14 +1909,18 @@ function filterList(q) {
 
 function focusListPin(id) {
   const cafe = cafes.find(c => c.id === id);
-  // 핀 강조
-  document.querySelectorAll('#list-map .pin-dot').forEach(d => {
-    d.classList.toggle('lit', d.dataset.id == id);
+  // 핀 강조 (_dot 직접 참조)
+  listMarkers.forEach(m => {
+    if (m._dot) m._dot.classList.toggle('lit', m._id == id);
   });
   activeListId = id;
+  // 리스트 아이템 스크롤
+  setTimeout(() => {
+    document.querySelector(`.list-item[data-id="${id}"]`)?.scrollIntoView({ behavior:'smooth', block:'center' });
+  }, 100);
   // 지도 줌인
   if (cafe?.lat && cafe?.lng && listMapObj) {
-    listMapObj.flyTo([cafe.lat, cafe.lng], 14, { duration: 0.6 });
+    listMapObj.flyTo([cafe.lat, cafe.lng], 15, { duration: 0.6 });
   }
 }
 
