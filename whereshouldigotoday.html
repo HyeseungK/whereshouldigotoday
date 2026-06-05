@@ -1155,6 +1155,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       <span class="list-count" id="list-count"></span>
       <div style="flex:1"></div>
       <button class="bar-btn" onclick="openAdmin()">+ 추가</button>
+      <button class="bar-btn" onclick="openBatchFix()" id="batch-fix-btn" style="display:none">🔧 링크 수정</button>
     </div>
     <div class="list-search-row">
       <input class="list-search-input" id="list-search" placeholder="이름이나 동네로 검색…" oninput="filterList(this.value)">
@@ -1220,6 +1221,19 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 
 <div class="toast" id="toast"></div>
 
+<!-- 배치 수정 모달 -->
+<div class="modal-bg" id="batch-modal" style="display:none;position:fixed;inset:0;z-index:2000;background:rgba(245,242,238,.88);backdrop-filter:blur(4px);align-items:center;justify-content:center;">
+  <div class="modal-box" style="width:520px;max-width:95vw;max-height:85vh;overflow-y:auto;background:var(--bg);padding:32px;border:1px solid var(--border);">
+    <p class="modal-title" style="font-family:'DM Serif Display',serif;font-style:italic;font-size:20px;margin-bottom:6px;">네이버지도 링크 일괄 수정</p>
+    <p style="font-size:12px;color:var(--muted);margin-bottom:20px;">네이버지도 URL 또는 place ID 숫자를 입력해주세요</p>
+    <div id="batch-list"></div>
+    <div style="display:flex;gap:8px;justify-content:flex-end;margin-top:20px;">
+      <button class="btn-c" onclick="closeBatch()">취소</button>
+      <button class="btn-s" onclick="saveBatch()">저장</button>
+    </div>
+  </div>
+</div>
+
 <div id="pin-popup" onclick="event.stopPropagation()">
   <div class="pp-bar"></div>
   <div class="pp-name" id="pp-name"></div>
@@ -1245,6 +1259,7 @@ let mapObj     = null;
 let markers    = [];
 let results    = [];
 let queryText  = '';
+let nearbyMode = false;
 let serverMode = false;
 let accounts   = [];
 let suggestions = [];
@@ -1324,8 +1339,50 @@ async function startSearch(overrideKws) {
     return { ...c, score, hits };
   }).filter(c => c.score > 0).sort((a,b) => b.score - a.score);
 
-  results = scored.length ? scored : cafes.map(c => ({ ...c, score:0, hits:[] }));
-  showResultsScreen();
+  if (scored.length) {
+    results = scored;
+    showResultsScreen();
+  } else {
+    // 매칭 없으면 위치 기반 가까운 카페 추천
+    setLoadSub('가까운 카페 찾는 중 📍');
+    tryNearby();
+  }
+}
+
+function haversine(lat1, lng1, lat2, lng2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLng = (lng2 - lng1) * Math.PI / 180;
+  const a = Math.sin(dLat/2)**2 + Math.cos(lat1*Math.PI/180) * Math.cos(lat2*Math.PI/180) * Math.sin(dLng/2)**2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function tryNearby() {
+  if (!navigator.geolocation) {
+    results = [];
+    nearbyMode = false;
+    showResultsScreen();
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      const { latitude: lat, longitude: lng } = pos.coords;
+      const withDist = cafes
+        .filter(c => c.lat && c.lng)
+        .map(c => ({ ...c, score: 0, hits: [], _dist: haversine(lat, lng, c.lat, c.lng) }))
+        .sort((a, b) => a._dist - b._dist)
+        .slice(0, 8);
+      results = withDist;
+      nearbyMode = true;
+      showResultsScreen();
+    },
+    () => {
+      results = [];
+      nearbyMode = false;
+      showResultsScreen();
+    },
+    { timeout: 6000 }
+  );
 }
 
 function delay(ms) { return new Promise(r => setTimeout(r, ms)); }
@@ -1337,22 +1394,64 @@ function extractKeywords(text) {
 }
 
 const SYN = {
-  '조용': ['조용한','혼카','집중','고즈넉한'],
-  '혼자': ['혼카','조용한','집중'],
-  '친구': ['넓은','브런치','수다'],
-  '데이트': ['로맨틱','예쁜','아늑한'],
-  '인스타': ['사진맛집','예쁜','인스타'],
-  '사진': ['사진맛집','인스타','예쁜'],
-  '빈티지': ['빈티지','아날로그'],
-  '책': ['책카페','조용한','혼카'],
-  '채광': ['채광좋음','테라스','햇살'],
-  '햇살': ['채광좋음','밝은'],
-  '바다': ['바다뷰','테라스'],
-  '모던': ['모던','감각적인','미니멀'],
-  '따뜻': ['따뜻한','아늑한','포근한'],
-  '포근': ['아늑한','따뜻한'],
-  '이색': ['특색있는','이색','감각적인'],
-  '힐링': ['힐링','자연','식물'],
+  // 분위기/느낌
+  '조용': ['조용한','혼카','집중','고즈넉한','한적한','차분한'],
+  '혼자': ['혼카','조용한','집중','1인석'],
+  '친구': ['넓은','브런치','수다','왁자지껄'],
+  '데이트': ['로맨틱','예쁜','아늑한','감성'],
+  '감성': ['감성적인','예쁜','인스타','아늑한'],
+  '아늑': ['아늑한','포근한','따뜻한'],
+  '포근': ['아늑한','따뜻한','포근한'],
+  '따뜻': ['따뜻한','아늑한','포근한','온기'],
+  '힐링': ['힐링','자연','식물','조용한','한적한'],
+  '이색': ['특색있는','이색','감각적인','독특한'],
+  '고즈넉': ['고즈넉한','조용한','한적한','한옥'],
+
+  // 자연/초록
+  '푸르': ['자연','식물','녹음','나무','풀','숲','정원','가드닝'],
+  '자연': ['자연','식물','녹음','나무','풀','숲','야외','힐링'],
+  '초록': ['식물','자연','녹음','가드닝','정원'],
+  '식물': ['식물','자연','정원','가드닝','녹음'],
+  '숲': ['자연','식물','숲카페','조용한','힐링'],
+  '정원': ['정원','자연','식물','야외','테라스'],
+  '나무': ['자연','식물','나무','숲','정원'],
+
+  // 야외/공간
+  '야외': ['야외석','테라스','루프탑','야외카페'],
+  '테라스': ['테라스','야외석','채광좋음','뷰맛집'],
+  '루프탑': ['루프탑','야외석','뷰맛집','테라스'],
+  '뷰': ['뷰맛집','전망좋은','바다뷰','도심뷰','채광좋음'],
+  '전망': ['뷰맛집','전망좋은','루프탑','채광좋음'],
+  '넓은': ['넓은','여유로운','테라스','브런치'],
+
+  // 스타일
+  '인스타': ['사진맛집','예쁜','인스타','감성'],
+  '사진': ['사진맛집','인스타','예쁜','감성'],
+  '예쁜': ['예쁜','인스타','사진맛집','감성적인'],
+  '빈티지': ['빈티지','아날로그','레트로','클래식'],
+  '레트로': ['레트로','빈티지','아날로그','오래된'],
+  '모던': ['모던','감각적인','미니멀','깔끔한'],
+  '미니멀': ['미니멀','모던','감각적인','심플'],
+  '감각': ['감각적인','모던','미니멀','세련된'],
+
+  // 목적
+  '작업': ['작업하기좋은','집중','노트북','와이파이','혼카'],
+  '공부': ['조용한','집중','작업하기좋은','노트북'],
+  '노트북': ['작업하기좋은','와이파이','집중','노트북가능'],
+  '책': ['책카페','조용한','혼카','고즈넉한'],
+  '브런치': ['브런치','넓은','여유로운','햇살'],
+
+  // 채광/날씨
+  '채광': ['채광좋음','밝은','햇살','테라스'],
+  '햇살': ['채광좋음','밝은','테라스','야외'],
+  '밝은': ['채광좋음','밝은','화이트톤','개방감'],
+
+  // 지역/특색
+  '한옥': ['한옥','고즈넉한','전통','조용한'],
+  '바다': ['바다뷰','테라스','뷰맛집','제주'],
+  '제주': ['제주','바다뷰','자연','힐링'],
+  '스페셜티': ['스페셜티','원두','핸드드립','커피맛집'],
+  '커피맛집': ['스페셜티','원두','핸드드립','커피맛집'],
 };
 function expand(kws) {
   let out = [...kws];
@@ -1364,13 +1463,19 @@ function expand(kws) {
 
 // ── RESULTS (SPLIT VIEW) ──────────────────────────────────────────────────────
 function showResultsScreen() {
-  const shown = results.filter(r => r.score > 0);
-  const toShow = shown.length ? shown : results;
+  const toShow = results;
 
-  document.getElementById('bar-query').innerHTML =
-    `<em>${queryText.length > 38 ? queryText.slice(0,38)+'…' : queryText}</em>`;
-  document.getElementById('bar-count').textContent =
-    shown.length ? `${shown.length}곳 발견` : `${cafes.length}곳 전체`;
+  if (nearbyMode) {
+    document.getElementById('bar-query').innerHTML = `<em>이런 곳은 어때요? 📍</em>`;
+    document.getElementById('bar-count').textContent = `가까운 ${toShow.length}곳`;
+    nearbyMode = false;
+  } else if (toShow.length === 0) {
+    document.getElementById('bar-query').innerHTML = `<em>${queryText.length > 38 ? queryText.slice(0,38)+'…' : queryText}</em>`;
+    document.getElementById('bar-count').textContent = '맞는 카페가 없어요';
+  } else {
+    document.getElementById('bar-query').innerHTML = `<em>${queryText.length > 38 ? queryText.slice(0,38)+'…' : queryText}</em>`;
+    document.getElementById('bar-count').textContent = `${toShow.length}곳 발견`;
+  }
 
   show('s-results');
   activeCardId = null;
