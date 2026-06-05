@@ -4,10 +4,12 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>오늘은 어디로 갈까</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=Gaegu:wght@400;700&family=Noto+Sans+KR:wght@300;400;500&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -984,7 +986,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div><!-- /sticker-area -->
 
     <h1 class="land-title">오늘은 어디로 갈까</h1>
-    <p class="land-sub">whereshouldigotoday</p>
+    <p class="land-sub">thecoffeetable</p>
 
     <div class="search-wrap">
       <div class="search-row">
@@ -1000,6 +1002,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   <button class="corner-add" onclick="openAdmin()">
     <span class="server-dot" id="server-dot"></span>+ 추가
   </button>
+
+  <span id="last-updated" style="
+    position:fixed; bottom:22px; left:26px;
+    font-size:11px; color:var(--muted); letter-spacing:0.5px;
+    font-family:'Noto Sans KR',sans-serif;
+  "></span>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1235,6 +1243,10 @@ async function initApp() {
   renderSuggestions();
 }
 initApp();
+
+fetch('/api/last-updated').then(r=>r.json()).then(d=>{
+  if (d.date) document.getElementById('last-updated').textContent = d.date + ' Updated';
+}).catch(()=>{});
 
 // ── SEARCH ───────────────────────────────────────────────────────────────────
 async function startSearch(overrideKws) {
