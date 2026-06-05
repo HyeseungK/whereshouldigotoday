@@ -46,7 +46,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   position: relative;
   width: 480px;
   height: 175px;
-  margin-bottom: 48px;
+  margin-bottom: 68px;
   flex-shrink: 0;
 }
 
@@ -64,9 +64,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .sticker-cup:hover { transform: rotate(-4deg) scale(1.06); opacity: 1; }
 .sticker-cup-hint {
   display: block; position: absolute;
-  left: 50%; bottom: -26px; transform: translateX(-50%);
-  font-size: 13px; color: var(--muted);
-  letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap;
+  left: 50%; bottom: -30px; transform: translateX(-50%);
+  font-size: 15px; color: var(--muted);
+  letter-spacing: 0; text-transform: none; white-space: nowrap;
 }
 
 /* 영수증 — 왼쪽에서 3번째 */
@@ -83,9 +83,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .sticker-receipt-hint {
   display: block;
   position: absolute;
-  left: 50%; bottom: -26px;
+  left: 50%; bottom: -30px;
   transform: translateX(-50%);
-  font-size: 13px;
+  font-size: 16px;
   color: var(--muted);
   letter-spacing: 1.5px;
   text-transform: uppercase;
@@ -699,9 +699,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .sticker-book:hover { transform: rotate(-7deg) scale(1.06); opacity: 1; }
 .sticker-book-hint {
   display: block; position: absolute;
-  left: 50%; bottom: -26px; transform: translateX(-50%);
-  font-size: 13px; color: var(--muted);
-  letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap;
+  left: 50%; bottom: -30px; transform: translateX(-50%);
+  font-size: 15px; color: var(--muted);
+  letter-spacing: 0; text-transform: none; white-space: nowrap;
 }
 
 /* 봉투 — 맨 오른쪽 */
@@ -717,9 +717,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .sticker-env:hover { transform: rotate(8deg) scale(1.06); opacity: 1; }
 .sticker-env-hint {
   display: block; position: absolute;
-  left: 50%; bottom: -26px; transform: translateX(-50%);
-  font-size: 13px; color: var(--muted);
-  letter-spacing: 1.5px; text-transform: uppercase; white-space: nowrap;
+  left: 50%; bottom: -30px; transform: translateX(-50%);
+  font-size: 15px; color: var(--muted);
+  letter-spacing: 0; text-transform: none; white-space: nowrap;
 }
 
 /* ─────────────────────────────────────────
@@ -922,6 +922,25 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 
   /* Modal */
   .modal-box { width: 95vw !important; max-height: 90vh; overflow-y: auto; }
+
+  /* 모바일 핀 팝업 */
+  #pin-popup {
+    display: none;
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 9000;
+    background: var(--bg); border-radius: 16px 16px 0 0;
+    border-top: 1px solid var(--border);
+    padding: 20px 24px 36px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,.10);
+    transform: translateY(100%);
+    transition: transform .3s ease;
+  }
+  #pin-popup.open { display: block; transform: translateY(0); }
+  #pin-popup .pp-name { font-family: 'DM Serif Display', serif; font-size: 20px; margin-bottom: 4px; }
+  #pin-popup .pp-hood { font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+  #pin-popup .pp-tags { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 14px; }
+  #pin-popup .pp-tag { font-size: 11px; background: var(--border); padding: 3px 8px; border-radius: 20px; }
+  #pin-popup .pp-link { font-size: 13px; color: #8B4A2A; text-decoration: none; }
+  #pin-popup .pp-bar { width: 40px; height: 4px; background: var(--border); border-radius: 2px; margin: 0 auto 16px; }
 }
 </style>
 </head>
@@ -1024,7 +1043,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   </button>
 
   <span id="last-updated" style="
-    position:fixed; bottom:22px; left:26px;
+    position:absolute; bottom:22px; left:26px;
     font-size:11px; color:var(--muted); letter-spacing:0.5px;
     font-family:'Noto Sans KR',sans-serif;
   "></span>
@@ -1205,6 +1224,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 
 <div class="toast" id="toast"></div>
 
+<div id="pin-popup" onclick="event.stopPropagation()">
+  <div class="pp-bar"></div>
+  <div class="pp-name" id="pp-name"></div>
+  <div class="pp-hood" id="pp-hood"></div>
+  <div class="pp-tags" id="pp-tags"></div>
+  <a class="pp-link" id="pp-link" target="_blank">네이버지도 →</a>
+</div>
+
 <script>
 // ── COLOR GRADIENTS ──────────────────────────────────────────────────────────
 const GR = {
@@ -1378,6 +1405,7 @@ function showResultsScreen() {
     m._id = cafe.id;
     m.on('click', e => {
       e.originalEvent.stopPropagation();
+      if (isMobile()) { showPinPopup(cafe); }
       activateCard(cafe.id, true);
     });
     markers.push(m);
@@ -1570,7 +1598,10 @@ function openList() {
       }).addTo(listMapObj);
       m._dot = el;
       m._id = cafe.id;
-      m.on('click', () => toggleListItem(cafe.id));
+      m.on('click', () => {
+        if (isMobile()) showPinPopup(cafe);
+        toggleListItem(cafe.id);
+      });
       listMarkers.push(m);
       bounds.push([cafe.lat, cafe.lng]);
     });
@@ -1582,8 +1613,10 @@ function openList() {
 // ── SCREENS ───────────────────────────────────────────────────────────────────
 function show(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById(id).classList.add('active');
+  const activeEl = document.getElementById(id);
+  activeEl.classList.add('active');
   window.scrollTo(0, 0);
+  activeEl.scrollTop = 0;
   if (id === 's-results' && mapObj) setTimeout(() => mapObj.invalidateSize(), 120);
   // close side panels when leaving home
   if (id !== 's-land') {
@@ -1933,6 +1966,26 @@ async function deleteCafe(id) {
     showToast('삭제됨');
     openList(); // 목록 새로고침
   } catch(e) { showToast('삭제 오류: ' + e.message); }
+}
+
+// ── 모바일 핀 팝업 ─────────────────────────────────────────────────────────────
+function isMobile() { return window.innerWidth <= 600; }
+
+function showPinPopup(cafe) {
+  document.getElementById('pp-name').textContent = cafe.name || '';
+  document.getElementById('pp-hood').textContent = cafe.hood || '';
+  const tagsEl = document.getElementById('pp-tags');
+  tagsEl.innerHTML = (cafe.tags||[]).slice(0,5).map(t=>`<span class="pp-tag">${t}</span>`).join('');
+  const link = document.getElementById('pp-link');
+  if (cafe.place_id) {
+    link.href = `https://map.naver.com/v5/entry/place/${cafe.place_id}`;
+    link.style.display = '';
+  } else { link.style.display = 'none'; }
+  document.getElementById('pin-popup').classList.add('open');
+  document.addEventListener('click', closePinPopup, { once: true });
+}
+function closePinPopup() {
+  document.getElementById('pin-popup').classList.remove('open');
 }
 
 // ── TOAST ─────────────────────────────────────────────────────────────────────
