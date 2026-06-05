@@ -926,9 +926,9 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   #s-list { flex-direction: column; overflow: hidden; }
   .list-bar-top { height: 44px; padding: 0 16px; gap: 10px; flex-wrap: wrap; }
   .list-bar .list-search-wrap { padding: 6px 16px; }
-  .list-content { flex-direction: column !important; flex: 1; overflow: hidden; }
-  .list-map-pane { flex: none !important; width: 100% !important; height: 50vh; order: -1; }
-  .list-body { flex: none !important; width: 100% !important; height: 50vh; max-height: 50vh; overflow-y: auto; }
+  .list-content { flex-direction: column !important; flex: 1; overflow: hidden; display: flex; }
+  .list-map-pane { flex: 1 !important; width: 100% !important; min-height: 0; order: -1; }
+  .list-body { flex: 1 !important; width: 100% !important; min-height: 0; overflow-y: auto; }
   .hood-heading { padding: 10px 16px 6px; }
 
   /* Cards */
