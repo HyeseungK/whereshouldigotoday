@@ -924,10 +924,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 
   /* Full list screen */
   #s-list { flex-direction: column; overflow: hidden; }
+  .list-bar-top { height: 44px; padding: 0 16px; gap: 10px; flex-wrap: wrap; }
+  .list-bar .list-search-wrap { padding: 6px 16px; }
   .list-content { flex-direction: column !important; flex: 1; overflow: hidden; }
+  .list-map-pane { flex: none !important; width: 100% !important; height: 50vh; order: -1; }
   .list-body { flex: none !important; width: 100% !important; height: 50vh; max-height: 50vh; overflow-y: auto; }
-  .list-map-pane { flex: none !important; width: 100% !important; height: 50vh; }
-  .list-bar-top { flex-wrap: wrap; gap: 6px; }
+  .hood-heading { padding: 10px 16px 6px; }
 
   /* Cards */
   .card { flex-direction: column; }
@@ -1555,7 +1557,7 @@ function openList() {
             <div class="list-expand-photos">${expandPhotos}</div>
             <div class="list-expand-text">
               ${cafe.concept ? `<div class="list-expand-concept">${cafe.concept}</div>` : ''}
-              <div class="list-expand-links">${instaLink}${naverLink}</div>
+              <div class="list-expand-links">${instaLink}</div>
             </div>
           </div>
         `;
@@ -1950,7 +1952,10 @@ function focusListPin(id) {
   }
 }
 
-async function deleteCafe(id) {
+function deleteCafe(id) {
+  requirePw(() => _deleteCafeActual(id));
+}
+async function _deleteCafeActual(id) {
   const cafe = cafes.find(c => c.id === id);
   if (!await showConfirm(`"${cafe?.name || '이 카페'}"를\n삭제할까요?`)) return;
   try {
