@@ -354,6 +354,21 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 .res-map { flex: 1; min-width: 200px; position: relative; }
 #map { position: absolute; inset: 0; }
 
+/* pin label tooltip */
+.pin-label {
+  background: var(--bg) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 4px !important;
+  box-shadow: 0 2px 8px rgba(0,0,0,.10) !important;
+  color: var(--text) !important;
+  font-family: 'DM Serif Display', serif !important;
+  font-size: 12px !important;
+  font-style: italic !important;
+  padding: 3px 8px !important;
+  white-space: nowrap !important;
+}
+.pin-label::before { display: none !important; }
+
 /* pin */
 .pin-icon {
   background: transparent !important;
@@ -1349,6 +1364,50 @@ async function startSearch(overrideKws) {
   }
 }
 
+// ── 배치 place_id 수정 ────────────────────────────────────────────────────────
+function openBatchFix() {
+  requirePw(() => {
+    const missing = cafes.filter(c => !c.place_id);
+    if (!missing.length) { showToast('모든 카페에 네이버 링크가 있어요 ✓'); return; }
+    document.getElementById('batch-list').innerHTML = missing.map(c => `
+      <div style="margin-bottom:14px;">
+        <div style="font-size:14px;font-weight:500;margin-bottom:4px;">${c.name} <span style="font-size:11px;color:var(--muted)">${c.hood||''}</span></div>
+        <input data-id="${c.id}" placeholder="https://map.naver.com/… 또는 숫자만"
+          style="width:100%;background:none;border:none;border-bottom:1px solid var(--border);padding:6px 0;font-size:13px;color:var(--text);outline:none;font-family:'Noto Sans KR',sans-serif;">
+      </div>
+    `).join('');
+    const el = document.getElementById('batch-modal');
+    el.style.display = 'flex';
+  });
+}
+function closeBatch() {
+  document.getElementById('batch-modal').style.display = 'none';
+}
+async function saveBatch() {
+  const inputs = document.querySelectorAll('#batch-list input[data-id]');
+  let updated = 0;
+  for (const inp of inputs) {
+    const val = inp.value.trim();
+    if (!val) continue;
+    const pid = extractPlaceId(val);
+    if (!pid) continue;
+    const id = Number(inp.dataset.id);
+    const cafe = cafes.find(c => c.id === id);
+    if (!cafe) continue;
+    cafe.place_id = pid;
+    if (serverMode) {
+      await fetch(`/api/cafes/${id}`, {
+        method: 'PUT', headers: {'Content-Type':'application/json'},
+        body: JSON.stringify(cafe)
+      });
+    }
+    updated++;
+  }
+  closeBatch();
+  showToast(`${updated}개 업데이트됨 ✓`);
+  openList();
+}
+
 function haversine(lat1, lng1, lat2, lng2) {
   const R = 6371;
   const dLat = (lat2 - lat1) * Math.PI / 180;
@@ -1364,6 +1423,7 @@ function tryNearby() {
     showResultsScreen();
     return;
   }
+  setLoadSub('가까운 곳 추천해드릴게요! 위치 접근을 허용해주세요 📍');
   navigator.geolocation.getCurrentPosition(
     pos => {
       const { latitude: lat, longitude: lng } = pos.coords;
@@ -1612,13 +1672,21 @@ function deactivateCard() {
 
 function updatePins() {
   markers.forEach(m => {
-    if (m._dot) m._dot.classList.toggle('lit', m._id == activeCardId);
+    const active = m._id == activeCardId;
+    if (m._dot) m._dot.classList.toggle('lit', active);
+    m.unbindTooltip();
+    if (active) {
+      const cafe = results.find(c => c.id === m._id) || cafes.find(c => c.id === m._id);
+      if (cafe?.name) m.bindTooltip(cafe.name, { permanent: true, direction: 'top', className: 'pin-label' }).openTooltip();
+    }
   });
 }
 
 // ── FULL LIST ─────────────────────────────────────────────────────────────────
 function openList() {
   document.getElementById('list-count').textContent = `${cafes.length}곳`;
+  const hasMissing = cafes.some(c => !c.place_id);
+  document.getElementById('batch-fix-btn').style.display = hasMissing ? '' : 'none';
   // 지역별 그룹핑
   const groups = {};
   cafes.forEach(c => {
@@ -2044,7 +2112,13 @@ function focusListPin(id) {
   const cafe = cafes.find(c => c.id === id);
   // 핀 강조 (_dot 직접 참조)
   listMarkers.forEach(m => {
-    if (m._dot) m._dot.classList.toggle('lit', m._id == id);
+    const active = m._id == id;
+    if (m._dot) m._dot.classList.toggle('lit', active);
+    m.unbindTooltip();
+    if (active) {
+      const cafe = cafes.find(c => c.id === m._id);
+      if (cafe?.name) m.bindTooltip(cafe.name, { permanent: true, direction: 'top', className: 'pin-label' }).openTooltip();
+    }
   });
   activeListId = id;
   // 리스트 아이템 스크롤
