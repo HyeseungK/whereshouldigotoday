@@ -445,7 +445,11 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
   color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
   border-bottom: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center; gap: 6px;
 }
+.region-heading::after { content: '▾'; font-size: 10px; margin-left: auto; transition: transform .2s; }
+.region-heading.collapsed::after { transform: rotate(-90deg); }
+.region-section.collapsed .hood-group { display: none; }
 .hood-group { padding: 0; }
 .hood-group.hidden { display: none; }
 .hood-heading {
@@ -456,7 +460,12 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   color: var(--text);
   letter-spacing: -.3px;
   border-bottom: 1px solid var(--border);
+  cursor: pointer; display: flex; align-items: center;
 }
+.hood-heading::after { content: '▾'; font-size: 10px; color: var(--muted); margin-left: auto; transition: transform .2s; }
+.hood-heading.collapsed::after { transform: rotate(-90deg); }
+.hood-group.collapsed .list-item,
+.hood-group.collapsed .list-item-expand { display: none; }
 .hood-hood {
   font-size: 10px;
   color: var(--muted);
@@ -1070,6 +1079,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
       </div>
 
     </div>
+
+    <a href="https://www.youtube.com/playlist?list=PLiEciKmUNiFDbumJ7rVoGwIFH8tVVq-hm" target="_blank"
+       style="display:flex;align-items:center;gap:8px;margin-top:20px;padding:10px 18px;background:rgba(139,74,42,.07);border-radius:20px;text-decoration:none;color:var(--text);font-size:12px;letter-spacing:0.3px;transition:background .15s;"
+       onmouseover="this.style.background='rgba(139,74,42,.13)'" onmouseout="this.style.background='rgba(139,74,42,.07)'">
+      <span>🎵</span>
+      <span>카페에서 듣기 좋은 음악 — <em style="font-style:normal;color:#8B4A2A">같이 만들어요</em></span>
+    </a>
+
   </div><!-- /land-hero -->
 
   <button class="corner-add" onclick="openAdmin()">
@@ -1435,26 +1452,29 @@ function closeBatch() {
 }
 async function saveBatch() {
   const inputs = document.querySelectorAll('#batch-list input[data-id]');
-  let updated = 0;
+  let updated = 0, failed = 0;
   for (const inp of inputs) {
     const val = inp.value.trim();
     if (!val) continue;
     const pid = extractPlaceId(val);
-    if (!pid) continue;
+    if (!pid) { showToast(`"${val}" — place_id 추출 실패`); continue; }
     const id = Number(inp.dataset.id);
-    const cafe = cafes.find(c => c.id === id);
+    const cafe = cafes.find(c => c.id == id);
     if (!cafe) continue;
     cafe.place_id = pid;
     if (serverMode) {
-      await fetch(`/api/cafes/${id}`, {
-        method: 'PUT', headers: {'Content-Type':'application/json'},
-        body: JSON.stringify(cafe)
-      });
+      try {
+        const r = await fetch(`/api/cafes/${id}`, {
+          method: 'PUT', headers: {'Content-Type':'application/json'},
+          body: JSON.stringify(cafe)
+        });
+        if (!r.ok) { failed++; console.error('업데이트 실패:', id, await r.text()); continue; }
+      } catch(e) { failed++; console.error('에러:', e); continue; }
     }
     updated++;
   }
   closeBatch();
-  showToast(`${updated}개 업데이트됨 ✓`);
+  showToast(failed ? `${updated}개 완료, ${failed}개 실패` : `${updated}개 업데이트됨 ✓`);
   openList();
 }
 
@@ -1675,7 +1695,7 @@ function renderExpandDetail(cafe) {
     ? `<a class="expand-insta" href="https://instagram.com/${cafe.insta.replace('@','')}" target="_blank">@${cafe.insta.replace('@','')}</a>`
     : '';
   return `
-    <div class="expand-photos">${photosHtml}</div>
+    ${photos.length ? `<div class="expand-photos">${photosHtml}</div>` : ''}
     <div class="expand-text">
       ${cafe.concept ? `<div class="expand-concept">${cafe.concept}</div>` : ''}
       ${reviewsHtml ? `<div class="expand-reviews">${reviewsHtml}</div>` : ''}
@@ -1768,10 +1788,10 @@ function openList() {
     const sorted = Object.entries(subGroups).sort((a,b) => a[0].localeCompare(b[0], 'ko'));
     const inner = sorted.map(([sub, list]) => `
       <div class="hood-group" data-hood="${sub}">
-        <div class="hood-heading">${sub}<span class="hood-hood">${list.length}곳</span></div>
+        <div class="hood-heading" onclick="this.classList.toggle('collapsed');this.closest('.hood-group').classList.toggle('collapsed')">${sub}<span class="hood-hood">${list.length}곳</span></div>
         ${list.map(cafe => renderCafeItem(cafe)).join('')}
       </div>`).join('');
-    return `<div class="region-section"><div class="region-heading">${groupLabel}</div>${inner}</div>`;
+    return `<div class="region-section"><div class="region-heading" onclick="this.classList.toggle('collapsed');this.closest('.region-section').classList.toggle('collapsed')">${groupLabel}</div>${inner}</div>`;
   }
 
   function renderCafeItem(cafe) {
@@ -1800,10 +1820,11 @@ function openList() {
             </div>
           </div>
           <div class="list-item-expand" id="list-expand-${cafe.id}">
-            <div class="list-expand-photos">${expandPhotos}</div>
+            ${photos.length ? `<div class="list-expand-photos">${expandPhotos}</div>` : ''}
             <div class="list-expand-text">
               ${cafe.concept ? `<div class="list-expand-concept">${cafe.concept}</div>` : ''}
-              <div class="list-expand-links">${instaLink}</div>
+              ${instaLink ? `<div class="list-expand-links">${instaLink}</div>` : ''}
+              ${naverLink ? `<div class="list-expand-links">${naverLink}</div>` : ''}
             </div>
           </div>`;
   }
