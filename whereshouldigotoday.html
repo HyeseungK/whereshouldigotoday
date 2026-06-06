@@ -1777,19 +1777,14 @@ function openList() {
   function renderCafeItem(cafe) {
     const photos = cafe.photos || (cafe.img ? [cafe.img] : []);
     const thumbHtml = photos[0]
-        const photos = cafe.photos || (cafe.img ? [cafe.img] : []);
-        const thumbHtml = photos[0]
-          ? `<img src="${photos[0]}" alt="" onerror="this.parentElement.innerHTML='<div class=\\'list-item-ph\\' style=\\'background:${GR[cafe.gr]||GR.warm}\\'>${cafe.emoji||'📍'}</div>'">`
-          : `<div class="list-item-ph" style="background:${GR[cafe.gr]||GR.warm}">${cafe.emoji||'📍'}</div>`;
-        const tagsHtml = (cafe.tags||[]).slice(0,5).map(t => `<span class="l-tag">${t}</span>`).join('');
-
-        // 확장 패널 - 사진 전체 + 소개글 + 링크
-        const expandPhotos = photos.length
-          ? photos.slice(0,4).map(u => `<img src="${u}" alt="" onerror="this.style.display='none'" loading="lazy">`).join('')
-          : `<div class="list-expand-ph" style="background:${GR[cafe.gr]||GR.warm}">${cafe.emoji||'📍'}</div>`;
-        const naverLink = cafe.place_id ? `<a class="naver-link" href="https://map.naver.com/v5/entry/place/${cafe.place_id}" target="_blank" onclick="event.stopPropagation()">네이버지도 →</a>` : '';
-        const instaLink = cafe.insta ? `<a class="expand-insta" href="https://instagram.com/${cafe.insta.replace('@','')}" target="_blank" onclick="event.stopPropagation()">@${cafe.insta.replace('@','')}</a>` : '';
-        const tagsHtml = (cafe.tags||[]).slice(0,5).map(t => `<span class="l-tag">${t}</span>`).join('');
+      ? `<img src="${photos[0]}" alt="" onerror="this.parentElement.innerHTML='<div class=\\'list-item-ph\\' style=\\'background:${GR[cafe.gr]||GR.warm}\\'>${cafe.emoji||'📍'}</div>'">`
+      : `<div class="list-item-ph" style="background:${GR[cafe.gr]||GR.warm}">${cafe.emoji||'📍'}</div>`;
+    const tagsHtml = (cafe.tags||[]).slice(0,5).map(t => `<span class="l-tag">${t}</span>`).join('');
+    const expandPhotos = photos.length
+      ? photos.slice(0,4).map(u => `<img src="${u}" alt="" onerror="this.style.display='none'" loading="lazy">`).join('')
+      : `<div class="list-expand-ph" style="background:${GR[cafe.gr]||GR.warm}">${cafe.emoji||'📍'}</div>`;
+    const naverLink = cafe.place_id ? `<a class="naver-link" href="https://map.naver.com/v5/entry/place/${cafe.place_id}" target="_blank" onclick="event.stopPropagation()">네이버지도 →</a>` : '';
+    const instaLink = cafe.insta ? `<a class="expand-insta" href="https://instagram.com/${cafe.insta.replace('@','')}" target="_blank" onclick="event.stopPropagation()">@${cafe.insta.replace('@','')}</a>` : '';
         return `
           <div class="list-item" data-id="${cafe.id}" data-name="${cafe.name}" data-hood="${cafe.hood||''}" onclick="toggleListItem(${cafe.id})">
             <div class="list-item-thumb">${thumbHtml}</div>
