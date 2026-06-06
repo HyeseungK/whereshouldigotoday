@@ -447,7 +447,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   border-bottom: 1px solid var(--border);
   cursor: pointer; display: flex; align-items: center; gap: 6px;
 }
-.region-heading::after { content: '▾'; font-size: 10px; margin-left: auto; transition: transform .2s; }
+.region-heading::after { content: '▾'; font-size: 10px; margin-left: auto; transition: transform .2s; font-style: normal; }
 .region-heading.collapsed::after { transform: rotate(-90deg); }
 .region-section.collapsed .hood-group { display: none; }
 .hood-group { padding: 0; }
@@ -462,7 +462,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   border-bottom: 1px solid var(--border);
   cursor: pointer; display: flex; align-items: center;
 }
-.hood-heading::after { content: '▾'; font-size: 10px; color: var(--muted); margin-left: auto; transition: transform .2s; }
+.hood-heading::after { content: '▾'; font-size: 10px; color: var(--muted); margin-left: auto; transition: transform .2s; font-style: normal; }
 .hood-heading.collapsed::after { transform: rotate(-90deg); }
 .hood-group.collapsed .list-item,
 .hood-group.collapsed .list-item-expand { display: none; }
@@ -1067,25 +1067,22 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     </div><!-- /sticker-area -->
 
     <h1 class="land-title">오늘은 어디로 갈까</h1>
-    <p class="land-sub">thecoffeetable</p>
-    <p style="font-size:13px;color:var(--muted);margin-top:6px;margin-bottom:36px;letter-spacing:0.5px">by <a href="https://instagram.com/helenrighthere" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);">@helenrighthere</a></p>
+    <p style="font-size:13px;color:var(--muted);letter-spacing:1px;text-align:center;margin-bottom:36px;">thecoffeetable &nbsp; by <a href="https://instagram.com/helenrighthere" target="_blank" style="color:var(--muted);text-decoration:underline;text-underline-offset:2px;">@helenrighthere</a></p>
 
     <div class="search-wrap">
       <div class="search-row">
         <input class="search-input" id="mood-in" type="text"
-          placeholder="어떤 느낌의 카페를 찾고 있어?"
+          placeholder="어떤 느낌의 카페를 찾고 있어요?"
           onkeydown="if(event.key==='Enter')startSearch()">
         <button class="search-go" onclick="startSearch()">찾기 →</button>
       </div>
-
+      <a href="https://www.youtube.com/playlist?list=PLiEciKmUNiFDbumJ7rVoGwIFH8tVVq-hm" target="_blank"
+         style="display:flex;align-items:center;gap:8px;margin-top:14px;padding:9px 16px;background:rgba(139,74,42,.07);border-radius:20px;text-decoration:none;color:var(--text);font-size:12px;letter-spacing:0.3px;transition:background .15s;"
+         onmouseover="this.style.background='rgba(139,74,42,.13)'" onmouseout="this.style.background='rgba(139,74,42,.07)'">
+        <span>🎵</span>
+        <span>카페에서 듣기 좋은 음악 — <em style="font-style:normal;color:#8B4A2A">같이 만들어요</em></span>
+      </a>
     </div>
-
-    <a href="https://www.youtube.com/playlist?list=PLiEciKmUNiFDbumJ7rVoGwIFH8tVVq-hm" target="_blank"
-       style="display:flex;align-items:center;gap:8px;margin-top:20px;padding:10px 18px;background:rgba(139,74,42,.07);border-radius:20px;text-decoration:none;color:var(--text);font-size:12px;letter-spacing:0.3px;transition:background .15s;"
-       onmouseover="this.style.background='rgba(139,74,42,.13)'" onmouseout="this.style.background='rgba(139,74,42,.07)'">
-      <span>🎵</span>
-      <span>카페에서 듣기 좋은 음악 — <em style="font-style:normal;color:#8B4A2A">같이 만들어요</em></span>
-    </a>
 
   </div><!-- /land-hero -->
 
@@ -2104,25 +2101,46 @@ async function doImport() {
   btn.disabled = false;
 }
 
+function compressImage(file, maxW=1200, quality=0.82) {
+  return new Promise(resolve => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const scale = Math.min(1, maxW / Math.max(img.width, img.height));
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width * scale;
+      canvas.height = img.height * scale;
+      canvas.getContext('2d').drawImage(img, 0, 0, canvas.width, canvas.height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => resolve(new File([blob], file.name.replace(/\.[^.]+$/, '.jpg'), { type: 'image/jpeg' })), 'image/jpeg', quality);
+    };
+    img.src = url;
+  });
+}
+
 async function handlePhotoUpload(event) {
   const files = Array.from(event.target.files);
   if (!files.length) return;
   const photoBox = document.getElementById('import-photos');
   photoBox.style.display = 'flex';
+  showToast('사진 업로드 중…');
 
   for (const file of files) {
     if (!serverMode) {
       uploadedPhotos.push(URL.createObjectURL(file));
       continue;
     }
-    const fd = new FormData();
-    fd.append('photo', file);
     try {
+      const compressed = await compressImage(file);
+      const fd = new FormData();
+      fd.append('photo', compressed);
       const r = await fetch('/api/upload', { method: 'POST', body: fd });
       const data = await r.json();
       if (data.url) uploadedPhotos.push(data.url);
-    } catch(e) { showToast('사진 업로드 오류'); }
+      else showToast('업로드 오류: ' + (data.error || ''));
+    } catch(e) { showToast('사진 업로드 오류: ' + e.message); }
   }
+  showToast('사진 업로드 완료 ✓');
   renderPhotoThumbs();
   event.target.value = '';
 }

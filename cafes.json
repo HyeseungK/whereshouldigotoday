@@ -38,7 +38,8 @@
     "img": null,
     "emoji": "📍",
     "gr": "warm",
-    "id": 1780579687624
+    "id": 1780579687624,
+    "place_id": "1120184427"
   },
   {
     "name": "애락",
@@ -94,7 +95,7 @@
     "concept": "맛있는 호지차 라떼를 파는 곳. 낮에는 햇살이 은은히 들어오고, 어둑어둑해진 뒤네는 종이 조명의 따뜻한 조명이 공간을 얕게 비추는 아늑한 공간. 단, 좌석이 아주 편하지는 않다. 대신 사장님이 마감 시간에 스콘을 나눠주시기도 할 만큼 따수워 마음에 든다.",
     "tags": [],
     "insta": "hobbppbb",
-    "place_id": null,
+    "place_id": "2049247003",
     "photos": [
       "https://res.cloudinary.com/dkrlpwxsj/image/upload/v1780671241/1780580157093.jpg",
       "https://res.cloudinary.com/dkrlpwxsj/image/upload/v1780671242/1780580157184.jpg",
@@ -172,7 +173,7 @@
     "concept": "",
     "tags": [],
     "insta": "",
-    "place_id": null,
+    "place_id": "1034629974",
     "photos": [
       "https://res.cloudinary.com/dkrlpwxsj/image/upload/v1780671276/1780644763265.jpg",
       "https://res.cloudinary.com/dkrlpwxsj/image/upload/v1780671278/1780644763913.jpg",
@@ -253,7 +254,7 @@
     "concept": "",
     "tags": [],
     "insta": "",
-    "place_id": null,
+    "place_id": "1227308691",
     "photos": [],
     "reviews": [],
     "_reviewText": "",
@@ -440,7 +441,7 @@
     "concept": "",
     "tags": [],
     "insta": "",
-    "place_id": null,
+    "place_id": "2029531336",
     "photos": [],
     "reviews": [],
     "_reviewText": "",
@@ -458,7 +459,7 @@
     "concept": "",
     "tags": [],
     "insta": "",
-    "place_id": null,
+    "place_id": "1090323749",
     "photos": [],
     "reviews": [],
     "_reviewText": "",
@@ -649,7 +650,7 @@
     "concept": "",
     "tags": [],
     "insta": "",
-    "place_id": null,
+    "place_id": "1218140401",
     "photos": [],
     "reviews": [],
     "_reviewText": "",
@@ -667,7 +668,7 @@
     "concept": "남산 둘레길 산책 끝낸 뒤 회현역 가는 길에 들르기 딱 좋은 카페. 자그마한 매장이지만 커피를 마실 수 있는 좌석은 생각보다 많다. 샤도네이 원두로 만든 라떼는 추천하지 않는다. 필터 커피 한 잔 들고 매장에서 원두 가는 소리 듣기 추천!",
     "tags": [],
     "insta": "",
-    "place_id": null,
+    "place_id": "1946602554",
     "photos": [
       "https://res.cloudinary.com/dkrlpwxsj/image/upload/v1780671247/1780634777749.jpg",
       "https://res.cloudinary.com/dkrlpwxsj/image/upload/v1780671248/1780634778009.jpg"
@@ -737,7 +738,8 @@
     "img": null,
     "emoji": "📍",
     "gr": "warm",
-    "id": 1780582388696
+    "id": 1780582388696,
+    "place_id": "1747832649"
   },
   {
     "name": "약수터",
@@ -754,7 +756,8 @@
     "img": null,
     "emoji": "📍",
     "gr": "warm",
-    "id": 1780582421983
+    "id": 1780582421983,
+    "place_id": "1478023751"
   },
   {
     "name": "리퍼크",
@@ -809,7 +812,8 @@
     "img": null,
     "emoji": "📍",
     "gr": "warm",
-    "id": 1780582572915
+    "id": 1780582572915,
+    "place_id": "1309723187"
   },
   {
     "name": "코러스커피 교동",
@@ -905,7 +909,7 @@
       "널찍한"
     ],
     "insta": "",
-    "place_id": null,
+    "place_id": "1670190275",
     "photos": [],
     "reviews": [],
     "_reviewText": "",
