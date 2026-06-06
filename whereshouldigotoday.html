@@ -108,7 +108,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   letter-spacing: 3.5px;
   text-transform: uppercase;
   text-align: center;
-  margin-bottom: 52px;
+  margin-bottom: 2px;
 }
 
 /* 검색 */
@@ -439,6 +439,13 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 #list-map { width: 100%; height: 100%; }
 
 /* 지역 그룹 */
+.region-section { }
+.region-heading {
+  padding: 20px 24px 6px;
+  font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
+  color: var(--muted); font-family: 'Noto Sans KR', sans-serif;
+  border-bottom: 1px solid var(--border);
+}
 .hood-group { padding: 0; }
 .hood-group.hidden { display: none; }
 .hood-heading {
@@ -758,6 +765,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   opacity: 1; pointer-events: all;
   transform: translateY(-50%) translateX(0);
 }
+#panel-lodging {
+  right: 0;
+  transform: translateY(-50%) translateX(105%);
+}
+#panel-lodging.open {
+  opacity: 1; pointer-events: all;
+  transform: translateY(-50%) translateX(0);
+}
 #panel-sug {
   right: 0;
   transform: translateY(-50%) translateX(105%);
@@ -766,6 +781,13 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
   opacity: 1; pointer-events: all;
   transform: translateY(-50%) translateX(0);
 }
+.lodging-item {
+  padding: 10px 0; border-bottom: 1px solid var(--border);
+}
+.lodging-name { font-family: 'DM Serif Display', serif; font-size: 16px; margin-bottom: 2px; }
+.lodging-loc { font-size: 12px; color: var(--muted); margin-bottom: 4px; }
+.lodging-concept { font-size: 12px; color: var(--text); line-height: 1.6; }
+.lodging-link { font-size: 12px; color: #8B4A2A; text-decoration: none; }
 .panel-head {
   font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
   color: var(--muted); margin-bottom: 14px;
@@ -966,8 +988,8 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
     <!-- 스티커 영역 -->
     <div class="sticker-area">
 
-      <!-- 커피컵 (클릭 → 주인장 인스타) -->
-      <div class="sticker-cup" onclick="window.open('https://instagram.com/helenrighthere','_blank')" title="주인장 인스타">
+      <!-- 커피컵 (클릭 → 랜덤 카페 픽) -->
+      <div class="sticker-cup" onclick="pickRandom()" title="랜덤 카페 추천">
         <svg width="130" height="150" viewBox="0 0 96 110" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M34 18 C33 12 35 7 33 2" stroke="#1A1714" stroke-width="1.2" stroke-linecap="round" fill="none" opacity=".35"/>
           <path d="M46 14 C45 8 47 3 45 -1" stroke="#1A1714" stroke-width="1.2" stroke-linecap="round" fill="none" opacity=".35"/>
@@ -980,10 +1002,10 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
           <path d="M78 42 Q96 42 96 56 Q96 70 78 70" stroke="#1A1714" stroke-width="1.5" fill="none"/>
           <path d="M30 50 Q48 56 66 50" stroke="#1A1714" stroke-width=".8" fill="none" opacity=".25"/>
         </svg>
-        <span class="sticker-cup-hint" style="text-transform:none;letter-spacing:0">@helenrighthere</span>
+        <span class="sticker-cup-hint" style="text-transform:none;letter-spacing:0">카페 랜덤 픽!</span>
       </div>
 
-      <!-- 영수증 (클릭 → 전체목록) -->
+      <!-- 영수증 (클릭 → 전체 카페 목록) -->
       <div class="sticker-receipt" onclick="openList()" title="전체 카페 보기">
         <svg width="96" height="136" viewBox="0 0 68 96" fill="none" xmlns="http://www.w3.org/2000/svg">
           <path d="M4 0 H64 V80 Q60 86 56 80 Q52 86 48 80 Q44 86 40 80 Q36 86 32 80 Q28 86 24 80 Q20 86 16 80 Q12 86 8 80 Q4 86 4 80 Z"
@@ -1011,7 +1033,7 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
           <line x1="16" y1="28" x2="30" y2="28" stroke="#1A1714" stroke-width=".8" opacity=".35"/>
           <path d="M33 1 L33 13 L30 10 L27 13 L27 1" stroke="#9E1818" stroke-width=".9" fill="#CC2020" fill-opacity=".82"/>
         </svg>
-        <span class="sticker-book-hint">추천 계정</span>
+        <span class="sticker-book-hint">이 계정 봐봐</span>
       </div>
 
       <!-- 봉투 (카페 추천) -->
@@ -1030,13 +1052,14 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
           <line x1="27" y1="20.2" x2="27" y2="25.8" stroke="#E07070" stroke-width=".6" opacity=".45"/>
           <line x1="24.2" y1="23" x2="29.8" y2="23" stroke="#E07070" stroke-width=".6" opacity=".45"/>
         </svg>
-        <span class="sticker-env-hint">카페 추천</span>
+        <span class="sticker-env-hint">카페 제보해줘</span>
       </div>
 
     </div><!-- /sticker-area -->
 
     <h1 class="land-title">오늘은 어디로 갈까</h1>
     <p class="land-sub">thecoffeetable</p>
+    <p style="font-size:13px;color:var(--muted);margin-top:6px;margin-bottom:36px;letter-spacing:0.5px">by <a href="https://instagram.com/helenrighthere" target="_blank" style="color:var(--text);text-decoration:none;border-bottom:1px solid var(--border);">@helenrighthere</a></p>
 
     <div class="search-wrap">
       <div class="search-row">
@@ -1093,11 +1116,30 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
      LEFT PANEL — 추천 계정
 ══════════════════════════════════════ -->
 <div class="side-panel" id="panel-book">
-  <div class="panel-head">카페/공간 · 계정 추천</div>
+  <div class="panel-head">매거진 & 계정 추천</div>
   <div class="account-strip" id="acc-strip">
     <span style="font-size:11px;color:var(--muted)">로딩 중…</span>
   </div>
   <button class="sec-add-btn" onclick="openAddAccount()">+ 계정 추가</button>
+</div>
+
+<!-- ══════════════════════════════════════
+     RIGHT PANEL — 추천 숙소
+══════════════════════════════════════ -->
+<div class="side-panel" id="panel-lodging">
+  <div class="panel-head">번외 : 추천 숙소 🏠</div>
+  <div id="lodging-list" style="padding:12px 20px">
+    <span style="font-size:11px;color:var(--muted)">로딩 중…</span>
+  </div>
+  <div id="lodging-admin" style="display:none;padding:0 20px 20px">
+    <div style="height:1px;background:var(--border);margin-bottom:16px"></div>
+    <div class="frow"><label>숙소명</label><input id="lodge-name" placeholder="고성 타싯"></div>
+    <div class="frow"><label>위치</label><input id="lodge-loc" placeholder="강원 고성"></div>
+    <div class="frow"><label>한 줄 소개</label><input id="lodge-concept" placeholder=""></div>
+    <div class="frow"><label>예약 링크</label><input id="lodge-link" placeholder="https://..."></div>
+    <button class="btn-s" onclick="saveLodging()" style="margin-top:10px;width:100%">저장</button>
+  </div>
+  <button class="btn-s" onclick="openLodgingAdmin()" style="margin:0 20px 20px;width:calc(100%-40px)">+ 숙소 추가</button>
 </div>
 
 <!-- ══════════════════════════════════════
@@ -1165,6 +1207,13 @@ html, body { height: 100%; background: var(--bg); color: var(--text); font-famil
 ══════════════════════════════════════ -->
 <div class="screen" id="s-list">
   <div class="list-bar">
+    <a href="https://www.youtube.com/playlist?list=PLiEciKmUNiFDbumJ7rVoGwIFH8tVVq-hm" target="_blank"
+       style="display:flex;align-items:center;gap:10px;padding:9px 24px;background:#f9f5f0;border-bottom:1px solid var(--border);text-decoration:none;color:var(--text);font-size:12px;transition:background .15s;"
+       onmouseover="this.style.background='#f0e9e0'" onmouseout="this.style.background='#f9f5f0'">
+      <span style="font-size:16px">🎵</span>
+      <span style="flex:1;line-height:1.4">카페에서 듣기 좋은 음악 — <em style="font-style:normal;color:#8B4A2A">같이 만들어요</em></span>
+      <span style="font-size:11px;color:var(--muted)">YouTube →</span>
+    </a>
     <div class="list-bar-top">
       <span class="list-title" onclick="goHome()">오늘은 어디로 갈까</span>
       <span class="list-count" id="list-count"></span>
@@ -1308,6 +1357,7 @@ async function initApp() {
       document.getElementById('server-dot').classList.add('on');
       loadAccounts();
       loadSuggestions();
+      loadLodgings();
     }
   } catch(e) {
     cafes = SAMPLE_CAFES;
@@ -1687,18 +1737,46 @@ function openList() {
   document.getElementById('list-count').textContent = `${cafes.length}곳`;
   const hasMissing = cafes.some(c => !c.place_id);
   document.getElementById('batch-fix-btn').style.display = hasMissing ? '' : 'none';
-  // 지역별 그룹핑
-  const groups = {};
+  // 서울/외 → 구 → 동 그룹핑
+  function getRegion(cafe) {
+    const addr = cafe.addr || '';
+    if (addr.startsWith('서울') || (cafe.hood||'').startsWith('서울')) return '서울';
+    const cityMatch = addr.match(/^(부산|대구|인천|광주|대전|울산|세종|경기|강원|충남|충북|전남|전북|경남|경북|제주)/);
+    return cityMatch ? cityMatch[1] : '기타';
+  }
+  function getGu(cafe) {
+    const addr = cafe.addr || '';
+    const m = addr.match(/([가-힣]+구)\s/);
+    return m ? m[1] : '';
+  }
+
+  const seoulGroups = {}, outerGroups = {};
   cafes.forEach(c => {
-    const h = c.hood || '기타';
-    if (!groups[h]) groups[h] = [];
-    groups[h].push(c);
+    const region = getRegion(c);
+    if (region === '서울') {
+      const gu = getGu(c) || '기타';
+      if (!seoulGroups[gu]) seoulGroups[gu] = [];
+      seoulGroups[gu].push(c);
+    } else {
+      const key = region;
+      if (!outerGroups[key]) outerGroups[key] = [];
+      outerGroups[key].push(c);
+    }
   });
 
-  const html = Object.entries(groups).sort((a,b) => a[0].localeCompare(b[0], 'ko')).map(([hood, list]) => `
-    <div class="hood-group" data-hood="${hood}">
-      <div class="hood-heading">${hood}<span class="hood-hood">${list.length}곳</span></div>
-      ${list.map(cafe => {
+  function renderGroup(groupLabel, subGroups) {
+    const sorted = Object.entries(subGroups).sort((a,b) => a[0].localeCompare(b[0], 'ko'));
+    const inner = sorted.map(([sub, list]) => `
+      <div class="hood-group" data-hood="${sub}">
+        <div class="hood-heading">${sub}<span class="hood-hood">${list.length}곳</span></div>
+        ${list.map(cafe => renderCafeItem(cafe)).join('')}
+      </div>`).join('');
+    return `<div class="region-section"><div class="region-heading">${groupLabel}</div>${inner}</div>`;
+  }
+
+  function renderCafeItem(cafe) {
+    const photos = cafe.photos || (cafe.img ? [cafe.img] : []);
+    const thumbHtml = photos[0]
         const photos = cafe.photos || (cafe.img ? [cafe.img] : []);
         const thumbHtml = photos[0]
           ? `<img src="${photos[0]}" alt="" onerror="this.parentElement.innerHTML='<div class=\\'list-item-ph\\' style=\\'background:${GR[cafe.gr]||GR.warm}\\'>${cafe.emoji||'📍'}</div>'">`
@@ -1711,7 +1789,7 @@ function openList() {
           : `<div class="list-expand-ph" style="background:${GR[cafe.gr]||GR.warm}">${cafe.emoji||'📍'}</div>`;
         const naverLink = cafe.place_id ? `<a class="naver-link" href="https://map.naver.com/v5/entry/place/${cafe.place_id}" target="_blank" onclick="event.stopPropagation()">네이버지도 →</a>` : '';
         const instaLink = cafe.insta ? `<a class="expand-insta" href="https://instagram.com/${cafe.insta.replace('@','')}" target="_blank" onclick="event.stopPropagation()">@${cafe.insta.replace('@','')}</a>` : '';
-
+        const tagsHtml = (cafe.tags||[]).slice(0,5).map(t => `<span class="l-tag">${t}</span>`).join('');
         return `
           <div class="list-item" data-id="${cafe.id}" data-name="${cafe.name}" data-hood="${cafe.hood||''}" onclick="toggleListItem(${cafe.id})">
             <div class="list-item-thumb">${thumbHtml}</div>
@@ -1732,11 +1810,11 @@ function openList() {
               ${cafe.concept ? `<div class="list-expand-concept">${cafe.concept}</div>` : ''}
               <div class="list-expand-links">${instaLink}</div>
             </div>
-          </div>
-        `;
-      }).join('')}
-    </div>
-  `).join('');
+          </div>`;
+  }
+
+  const html = (Object.keys(seoulGroups).length ? renderGroup('서울', seoulGroups) : '')
+             + (Object.keys(outerGroups).length ? renderGroup('서울 외', outerGroups) : '');
 
   document.getElementById('list-body').innerHTML = html || '<div style="padding:60px;text-align:center;color:var(--muted);font-size:12px">카페가 없어요 — 먼저 추가해봐!</div>';
   document.getElementById('list-search').value = '';
@@ -1795,6 +1873,84 @@ function show(id) {
 function goHome() {
   document.getElementById('mood-in').value = '';
   show('s-land');
+}
+
+// ── 패널 토글 ──────────────────────────────────────────────────────────────────
+function togglePanel(id) {
+  const p = document.getElementById(id);
+  const isOpen = p.classList.contains('open');
+  document.querySelectorAll('.side-panel').forEach(x => x.classList.remove('open'));
+  if (!isOpen) p.classList.add('open');
+}
+async function pickRandom() {
+  if (!cafes.length) { showToast('카페가 없어요!'); return; }
+  show('s-load');
+  setLoadSub('오늘의 카페 고르는 중 ☕');
+  await delay(600);
+  const pick = cafes[Math.floor(Math.random() * cafes.length)];
+  queryText = '오늘의 카페';
+  results = [{ ...pick, score: 1, hits: [] }];
+  nearbyMode = false;
+  showResultsScreen();
+}
+
+function toggleBook()    { togglePanel('panel-book'); }
+function toggleSuggest() { togglePanel('panel-sug'); }
+function toggleLodging() { togglePanel('panel-lodging'); }
+
+// ── 숙소 ──────────────────────────────────────────────────────────────────────
+let lodgings = [];
+
+async function loadLodgings() {
+  try {
+    const r = await fetch('/api/lodgings');
+    if (r.ok) lodgings = await r.json();
+  } catch(e) {}
+  renderLodgings();
+}
+
+function renderLodgings() {
+  const el = document.getElementById('lodging-list');
+  if (!lodgings.length) {
+    el.innerHTML = '<p style="font-size:12px;color:var(--muted)">아직 추가된 숙소가 없어요</p>';
+    return;
+  }
+  el.innerHTML = lodgings.map(l => `
+    <div class="lodging-item">
+      <div class="lodging-name">${l.name}</div>
+      <div class="lodging-loc">${l.loc || ''}</div>
+      ${l.concept ? `<div class="lodging-concept">${l.concept}</div>` : ''}
+      ${l.link ? `<a class="lodging-link" href="${l.link}" target="_blank">예약 링크 →</a>` : ''}
+    </div>
+  `).join('');
+}
+
+function openLodgingAdmin() {
+  requirePw(() => {
+    document.getElementById('lodging-admin').style.display = 'block';
+  });
+}
+
+async function saveLodging() {
+  const name = document.getElementById('lodge-name').value.trim();
+  if (!name) { showToast('숙소 이름을 입력해줘'); return; }
+  const lodge = {
+    name,
+    loc: document.getElementById('lodge-loc').value.trim(),
+    concept: document.getElementById('lodge-concept').value.trim(),
+    link: document.getElementById('lodge-link').value.trim(),
+  };
+  try {
+    const r = await fetch('/api/lodgings', {
+      method: 'POST', headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(lodge)
+    });
+    lodgings.push(await r.json());
+    renderLodgings();
+    ['lodge-name','lodge-loc','lodge-concept','lodge-link'].forEach(id => document.getElementById(id).value = '');
+    document.getElementById('lodging-admin').style.display = 'none';
+    showToast('숙소 추가됨 ✓');
+  } catch(e) { showToast('오류: ' + e.message); }
 }
 
 // ── PASSWORD ──────────────────────────────────────────────────────────────────
